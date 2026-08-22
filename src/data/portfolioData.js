@@ -16,7 +16,7 @@ export const PERSONAL_INFO = {
   linkedin: "https://www.linkedin.com/in/aditya-kumar-6440a8429/",
   github: "https://github.com/AADIKANE002",
   leetcode: "https://leetcode.com/",
-  resumePdfUrl: "./Aditya_Kumar_ML_Engineer_Resume.pdf",
+  resumePdfUrl: "./Aditya_Kumar.pdf",
   resumeDocxUrl: "./Aditya_Kumar_ML_Engineer_Resume.docx",
   bio: "Machine Learning Engineer with 2+ years of experience designing, training, evaluating, and deploying end-to-end ML and Generative AI systems in production environments. Proven track record building time-series forecasting pipelines, automating model benchmarking and selection with MAPE-based evaluation, and shipping serverless ML workloads on AWS Lambda. Hands-on experience with LLMs, Retrieval-Augmented Generation (RAG), and agentic AI, plus computer vision and IoT-based systems.",
   stats: [

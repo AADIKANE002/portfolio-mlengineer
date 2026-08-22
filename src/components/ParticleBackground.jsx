@@ -19,71 +19,49 @@ const ParticleBackground = ({ theme = 'space' }) => {
 
     window.addEventListener('resize', handleResize);
 
-    const mouse = {
-      x: null,
-      y: null,
-      radius: 120,
-    };
+    const mouse = { x: null, y: null, radius: 140 };
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
 
-    const handleMouseMove = (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    };
-
-    const handleMouseLeave = () => {
-      mouse.x = null;
-      mouse.y = null;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
-
-    // Particle settings
-    const particleCount = Math.min(Math.floor(window.innerWidth / 16), 85);
+    // ML ENGINEER NEURAL NETWORK VIBE
+    // Nodes cluster and connect heavily like synapses
+    const particleCount = Math.floor(window.innerWidth / 12); 
     const particles = [];
-
-    const getColors = () => {
-      if (theme === 'cyberpunk') {
-        return ['#EC4899', '#A855F7', '#00F0FF', '#F43F5E'];
-      }
-      if (theme === 'slate') {
-        return ['#38BDF8', '#60A5FA', '#818CF8', '#94A3B8'];
-      }
-      return ['#00F0FF', '#3B82F6', '#6366F1', '#A855F7'];
-    };
-
-    const colors = getColors();
+    const colors = ['#d946ef', '#ec4899', '#8b5cf6', '#a855f7', '#6366f1'];
 
     class Particle {
       constructor() {
         this.x = Math.random() * width;
         this.y = Math.random() * height;
-        this.size = Math.random() * 2 + 0.8;
-        this.speedX = (Math.random() - 0.5) * 0.7;
-        this.speedY = (Math.random() - 0.5) * 0.7;
+        this.size = Math.random() * 2.5 + 1.5;
+        this.speedX = (Math.random() - 0.5) * 1.5;
+        this.speedY = (Math.random() - 0.5) * 1.5;
         this.color = colors[Math.floor(Math.random() * colors.length)];
-        this.alpha = Math.random() * 0.5 + 0.2;
+        this.alpha = Math.random() * 0.5 + 0.3;
+        this.pulse = Math.random() * 0.1;
       }
 
       update() {
         this.x += this.speedX;
         this.y += this.speedY;
 
-        if (this.x > width) this.x = 0;
-        else if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0; else if (this.x < 0) this.x = width;
+        if (this.y > height) this.y = 0; else if (this.y < 0) this.y = height;
 
-        if (this.y > height) this.y = 0;
-        else if (this.y < 0) this.y = height;
+        // Neural pulse effect (size changes slightly)
+        this.size += Math.sin(Date.now() * this.pulse * 0.05) * 0.1;
+        this.size = Math.max(1, Math.min(this.size, 4));
 
-        // Mouse attraction/repulsion
+        // Neural attraction (nodes pull toward each other slightly if very close)
+        // Kept simple for performance: mouse attracts strongly like a major activation node
         if (mouse.x !== null && mouse.y !== null) {
           const dx = mouse.x - this.x;
           const dy = mouse.y - this.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance < mouse.radius) {
             const force = (mouse.radius - distance) / mouse.radius;
-            this.x -= (dx / distance) * force * 1.5;
-            this.y -= (dy / distance) * force * 1.5;
+            this.x += (dx / distance) * force * 2.5; // Strong pull
+            this.y += (dy / distance) * force * 2.5;
           }
         }
       }
@@ -94,69 +72,44 @@ const ParticleBackground = ({ theme = 'space' }) => {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
         ctx.globalAlpha = this.alpha;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 12;
         ctx.shadowColor = this.color;
         ctx.fill();
         ctx.restore();
       }
     }
 
-    for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
-    }
+    for (let i = 0; i < particleCount; i++) particles.push(new Particle());
 
-    const connectParticles = () => {
-      const maxDistance = 110;
-      for (let a = 0; a < particles.length; a++) {
-        for (let b = a + 1; b < particles.length; b++) {
-          const dx = particles[a].x - particles[b].x;
-          const dy = particles[a].y - particles[b].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+    const connectSynapses = () => {
+       const maxDistance = 130;
+       for (let a = 0; a < particles.length; a++) {
+         for (let b = a + 1; b < particles.length; b++) {
+           const dx = particles[a].x - particles[b].x;
+           const dy = particles[a].y - particles[b].y;
+           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < maxDistance) {
-            const opacity = (1 - distance / maxDistance) * 0.18;
-            ctx.save();
-            ctx.beginPath();
-            ctx.strokeStyle = theme === 'cyberpunk' ? '#A855F7' : '#00F0FF';
-            ctx.globalAlpha = opacity;
-            ctx.lineWidth = 0.8;
-            ctx.moveTo(particles[a].x, particles[a].y);
-            ctx.lineTo(particles[b].x, particles[b].y);
-            ctx.stroke();
-            ctx.restore();
-          }
-        }
-
-        // Connect to mouse
-        if (mouse.x !== null && mouse.y !== null) {
-          const dx = particles[a].x - mouse.x;
-          const dy = particles[a].y - mouse.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 130) {
-            const opacity = (1 - distance / 130) * 0.35;
-            ctx.save();
-            ctx.beginPath();
-            ctx.strokeStyle = '#00F0FF';
-            ctx.globalAlpha = opacity;
-            ctx.lineWidth = 1.2;
-            ctx.moveTo(particles[a].x, particles[a].y);
-            ctx.lineTo(mouse.x, mouse.y);
-            ctx.stroke();
-            ctx.restore();
-          }
-        }
-      }
+           if (distance < maxDistance) {
+             // Thicker, brighter lines for "activations"
+             const opacity = (1 - distance / maxDistance) * 0.35;
+             ctx.save();
+             ctx.beginPath();
+             ctx.strokeStyle = '#d946ef'; // Magenta neural link
+             ctx.globalAlpha = opacity;
+             ctx.lineWidth = opacity * 4; // Dynamic width based on proximity
+             ctx.moveTo(particles[a].x, particles[a].y);
+             ctx.lineTo(particles[b].x, particles[b].y);
+             ctx.stroke();
+             ctx.restore();
+           }
+         }
+       }
     };
 
     const animate = () => {
       ctx.clearRect(0, 0, width, height);
-
-      particles.forEach((p) => {
-        p.update();
-        p.draw();
-      });
-
-      connectParticles();
+      particles.forEach(p => { p.update(); p.draw(); });
+      connectSynapses();
       animationFrameId = requestAnimationFrame(animate);
     };
 
@@ -164,19 +117,10 @@ const ParticleBackground = ({ theme = 'space' }) => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, [theme]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ opacity: 0.85 }}
-    />
-  );
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-80" />;
 };
-
 export default ParticleBackground;
